@@ -1,0 +1,40 @@
+# Specify the URL of the webpage containing the download links
+$webpageUrl = "https://www.example.com/professional/support/software-updates"
+
+# Use Invoke-WebRequest to fetch the webpage content
+$response = Invoke-WebRequest -Uri $webpageUrl
+
+# Check if the request was successful
+if ($response.StatusCode -eq 200) {
+    # Parse the HTML content of the webpage
+    $html = $response.Content
+
+    # Use a regular expression to find the download link(s) based on patterns
+    $regexPattern = "href=[""'](https?://.*?\.exe)[""']"
+    $matches = [regex]::Matches($html, $regexPattern)
+
+    if ($matches.Count -gt 0) {
+        # Get the first match (you can modify this logic if there are multiple links)
+        $downloadUrl = $matches[0].Groups[1].Value
+
+        # Specify the path where you want to save the downloaded .exe file
+        $downloadPath = "$env:USERPROFILE\Downloads\YourFile.exe"
+
+        # Download the .exe file from the found URL
+        Invoke-WebRequest -Uri $downloadUrl -UseBasicParsing -OutFile $downloadPath
+
+        # Check if the download was successful
+        if (Test-Path $downloadPath) {
+            Write-Host "File downloaded successfully."
+
+            # Execute the downloaded .exe file
+            Start-Process -FilePath $downloadPath
+        } else {
+            Write-Host "Failed to download the file."
+        }
+    } else {
+        Write-Host "No download link found on the webpage."
+    }
+} else {
+    Write-Host "Failed to fetch the webpage."
+}
